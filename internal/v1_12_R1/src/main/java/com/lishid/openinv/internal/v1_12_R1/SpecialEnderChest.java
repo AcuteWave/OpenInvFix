@@ -16,39 +16,31 @@
 
 package com.lishid.openinv.internal.v1_12_R1;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.List;
-
 import com.lishid.openinv.internal.ISpecialEnderChest;
-
+import net.minecraft.server.v1_12_R1.*;
+import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftInventory;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
-
-import net.minecraft.server.v1_12_R1.EntityPlayer;
-import net.minecraft.server.v1_12_R1.IInventory;
-import net.minecraft.server.v1_12_R1.InventoryEnderChest;
-import net.minecraft.server.v1_12_R1.InventorySubcontainer;
-import net.minecraft.server.v1_12_R1.ItemStack;
-
-import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftInventory;
 
 public class SpecialEnderChest extends InventorySubcontainer
         implements IInventory, ISpecialEnderChest {
 
     private final InventoryEnderChest enderChest;
     private final CraftInventory inventory = new CraftInventory(this);
+    private final EntityPlayer owner;
     private boolean playerOnline;
+    private NonNullList<ItemStack> items;
 
     public SpecialEnderChest(final Player player, final Boolean online) {
         super(PlayerDataManager.getHandle(player).getEnderChest().getName(),
                 PlayerDataManager.getHandle(player).getEnderChest().hasCustomName(),
                 PlayerDataManager.getHandle(player).getEnderChest().getSize());
+        this.owner = PlayerDataManager.getHandle(player);
         this.playerOnline = online;
-        EntityPlayer nmsPlayer = PlayerDataManager.getHandle(player);
-        this.enderChest = nmsPlayer.getEnderChest();
-        this.bukkitOwner = nmsPlayer.getBukkitEntity();
-        this.setItemLists(this, this.enderChest.getContents());
+        this.enderChest = owner.getEnderChest();
+        this.bukkitOwner = owner.getBukkitEntity();
+        this.items = owner.getEnderChest().items;
+        this.setItemLists(this);
     }
 
     @Override
@@ -61,20 +53,12 @@ public class SpecialEnderChest extends InventorySubcontainer
         return !this.getViewers().isEmpty();
     }
 
-    private void setItemLists(final InventorySubcontainer subcontainer,
-            final List<ItemStack> list) {
-        try {
-            // Prepare to remove final modifier
-            Field modifiers = Field.class.getDeclaredField("modifiers");
-            modifiers.setAccessible(true);
-            // Access and replace main inventory array
-            Field field = InventorySubcontainer.class.getField("items");
-            modifiers.setInt(field, field.getModifiers() & ~Modifier.FINAL);
-            field.set(subcontainer, list);
-        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException
-                | IllegalAccessException e) {
-            e.printStackTrace();
+    private void setItemLists(final InventorySubcontainer subcontainer) {
+        InventoryEnderChest enderChest = owner.getEnderChest();
+        for (int i = 0; i < enderChest.getSize(); ++i) {
+            subcontainer.setItem(i, this.items.get(i));
         }
+        this.items = subcontainer.items;
     }
 
     @Override
@@ -88,8 +72,9 @@ public class SpecialEnderChest extends InventorySubcontainer
             try {
                 EntityPlayer nmsPlayer = PlayerDataManager.getHandle(player);
                 this.bukkitOwner = nmsPlayer.getBukkitEntity();
-                this.setItemLists(nmsPlayer.getEnderChest(), this.items);
-            } catch (Exception e) {}
+                this.setItemLists(nmsPlayer.getEnderChest());
+            } catch (Exception ignored) {
+            }
             this.playerOnline = true;
         }
     }
