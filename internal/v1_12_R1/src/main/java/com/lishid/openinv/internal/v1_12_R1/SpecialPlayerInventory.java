@@ -19,17 +19,14 @@ package com.lishid.openinv.internal.v1_12_R1;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.List;
 
+import com.google.common.collect.ImmutableList;
 import com.lishid.openinv.internal.ISpecialPlayerInventory;
 
+import net.minecraft.server.v1_12_R1.*;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
-
-import net.minecraft.server.v1_12_R1.ContainerUtil;
-import net.minecraft.server.v1_12_R1.EntityHuman;
-import net.minecraft.server.v1_12_R1.ItemStack;
-import net.minecraft.server.v1_12_R1.NonNullList;
-import net.minecraft.server.v1_12_R1.PlayerInventory;
 
 import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftInventory;
 
@@ -37,12 +34,30 @@ public class SpecialPlayerInventory extends PlayerInventory implements ISpecialP
 
     private final CraftInventory inventory = new CraftInventory(this);
     private boolean playerOnline;
+    private NonNullList<ItemStack> items, armor, extraSlots;
+    private final List<NonNullList<ItemStack>> f;
 
     public SpecialPlayerInventory(final Player bukkitPlayer, final Boolean online) {
         super(PlayerDataManager.getHandle(bukkitPlayer));
         this.playerOnline = online;
-        this.setItemArrays(this, this.player.inventory.items, this.player.inventory.armor,
-                this.player.inventory.extraSlots);
+        this.items = this.player.inventory.items;
+        this.armor = this.player.inventory.armor;
+        this.extraSlots = this.player.inventory.extraSlots;
+        this.f = ImmutableList.of(this.items, this.armor, this.extraSlots);
+    }
+
+    @Override
+    public void setPlayerOnline(final Player player) {
+        if (!this.playerOnline) {
+            EntityPlayer entityPlayer = PlayerDataManager.getHandle(player);
+            entityPlayer.inventory.transaction.addAll(this.transaction);
+            this.player = entityPlayer;
+            this.player.inventory.a(this);
+            this.items = this.player.inventory.items;
+            this.armor = this.player.inventory.armor;
+            this.extraSlots = this.player.inventory.extraSlots;
+            this.playerOnline = true;
+        }
     }
 
     @Override
@@ -57,7 +72,7 @@ public class SpecialPlayerInventory extends PlayerInventory implements ISpecialP
 
     @Override
     public ItemStack getItem(int i) {
-        NonNullList<ItemStack> list = this.items;
+        List<ItemStack> list = this.items;
 
         if (i >= list.size()) {
             i -= list.size();
@@ -90,7 +105,7 @@ public class SpecialPlayerInventory extends PlayerInventory implements ISpecialP
 
     @Override
     public boolean hasCustomName() {
-        return true;
+        return false;
     }
 
     private int getReversedArmorSlotNum(final int i) {
@@ -128,7 +143,7 @@ public class SpecialPlayerInventory extends PlayerInventory implements ISpecialP
 
     @Override
     public void setItem(int i, final ItemStack itemstack) {
-        NonNullList<ItemStack> list = this.items;
+        List<ItemStack> list = this.items;
 
         if (i >= list.size()) {
             i -= list.size();
@@ -152,52 +167,12 @@ public class SpecialPlayerInventory extends PlayerInventory implements ISpecialP
         list.set(i, itemstack);
     }
 
-    private void setItemArrays(final PlayerInventory inventory, final NonNullList<ItemStack> items,
-            final NonNullList<ItemStack> armor, final NonNullList<ItemStack> extraSlots) {
-        try {
-            // Prepare to remove final modifier
-            Field modifiers = Field.class.getDeclaredField("modifiers");
-            modifiers.setAccessible(true);
-
-            // Access and replace main inventory list
-            Field field = PlayerInventory.class.getField("items");
-            modifiers.setInt(field, field.getModifiers() & ~Modifier.FINAL);
-            field.set(inventory, items);
-
-            // Access and replace armor inventory list
-            field = PlayerInventory.class.getField("armor");
-            modifiers.setInt(field, field.getModifiers() & ~Modifier.FINAL);
-            field.set(inventory, armor);
-
-            // Access and replace offhand inventory list
-            field = PlayerInventory.class.getField("extraSlots");
-            modifiers.setInt(field, field.getModifiers() & ~Modifier.FINAL);
-            field.set(inventory, extraSlots);
-
-            // Access and replace list containing all inventory lists
-            field = PlayerInventory.class.getDeclaredField("f");
-            field.setAccessible(true);
-            modifiers.setInt(field, field.getModifiers() & ~Modifier.FINAL);
-            field.set(inventory, Arrays.asList(items, armor, extraSlots));
-        } catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException e) {
-            // Unable to set final fields to item lists, we're screwed. Noisily fail.
-            e.printStackTrace();
-        }
-    }
 
     @Override
     public void setPlayerOffline() {
         this.playerOnline = false;
     }
 
-    @Override
-    public void setPlayerOnline(final Player player) {
-        if (!this.playerOnline) {
-            this.player = PlayerDataManager.getHandle(player);
-            this.setItemArrays(this.player.inventory, this.items, this.armor, this.extraSlots);
-            this.playerOnline = true;
-        }
-    }
 
     @Override
     public ItemStack splitStack(int i, final int j) {
