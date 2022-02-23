@@ -16,9 +16,9 @@
 
 package com.lishid.openinv.internal;
 
-import javax.annotation.Nullable;
-
 import org.bukkit.inventory.Inventory;
+
+import javax.annotation.Nullable;
 
 public interface IInventoryAccess {
 

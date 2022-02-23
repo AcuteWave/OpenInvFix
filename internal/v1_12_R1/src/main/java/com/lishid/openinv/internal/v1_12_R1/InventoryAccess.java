@@ -20,12 +20,9 @@ import com.lishid.openinv.internal.IInventoryAccess;
 import com.lishid.openinv.internal.ISpecialEnderChest;
 import com.lishid.openinv.internal.ISpecialPlayerInventory;
 import com.lishid.openinv.util.InternalAccessor;
-
-import org.bukkit.inventory.Inventory;
-
 import net.minecraft.server.v1_12_R1.IInventory;
-
 import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftInventory;
+import org.bukkit.inventory.Inventory;
 
 public class InventoryAccess implements IInventoryAccess {
 

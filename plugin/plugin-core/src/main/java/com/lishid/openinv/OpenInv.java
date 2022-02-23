@@ -16,44 +16,15 @@
 
 package com.lishid.openinv;
 
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-
-import javax.annotation.Nullable;
-
-import com.lishid.openinv.commands.AnyChestPluginCommand;
-import com.lishid.openinv.commands.OpenEnderPluginCommand;
-import com.lishid.openinv.commands.OpenInvPluginCommand;
-import com.lishid.openinv.commands.SearchEnchantPluginCommand;
-import com.lishid.openinv.commands.SearchInvPluginCommand;
-import com.lishid.openinv.commands.SilentChestPluginCommand;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import com.lishid.openinv.commands.*;
 import com.lishid.openinv.internal.IAnySilentContainer;
 import com.lishid.openinv.internal.IInventoryAccess;
 import com.lishid.openinv.internal.ISpecialEnderChest;
 import com.lishid.openinv.internal.ISpecialPlayerInventory;
-import com.lishid.openinv.listeners.InventoryClickListener;
-import com.lishid.openinv.listeners.InventoryCloseListener;
-import com.lishid.openinv.listeners.InventoryDragListener;
-import com.lishid.openinv.listeners.PlayerListener;
-import com.lishid.openinv.listeners.PluginListener;
-import com.lishid.openinv.util.Cache;
-import com.lishid.openinv.util.ConfigUpdater;
-import com.lishid.openinv.util.Function;
-import com.lishid.openinv.util.InternalAccessor;
-import com.lishid.openinv.util.Permissions;
-
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-
+import com.lishid.openinv.listeners.*;
+import com.lishid.openinv.util.*;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.PluginCommand;
@@ -65,6 +36,12 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import javax.annotation.Nullable;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+
 /**
  * Open other player's inventory
  *
@@ -72,52 +49,50 @@ import org.bukkit.scheduler.BukkitRunnable;
  */
 public class OpenInv extends JavaPlugin implements IOpenInv {
 
-    private final Map<String, ISpecialPlayerInventory> inventories = new HashMap<String, ISpecialPlayerInventory>();
-    private final Map<String, ISpecialEnderChest> enderChests = new HashMap<String, ISpecialEnderChest>();
+    private final Map<String, ISpecialPlayerInventory> inventories = new HashMap<>();
+    private final Map<String, ISpecialEnderChest> enderChests = new HashMap<>();
     private final Multimap<String, Class<? extends Plugin>> pluginUsage = HashMultimap.create();
-
-    private final Cache<String, Player> playerCache = new Cache<String, Player>(300000L,
-            new Function<Player>() {
+    private InternalAccessor accessor;
+    private final Cache<String, Player> playerCache = new Cache<>(300000L,
+            new Function<>() {
                 @Override
                 public boolean run(final Player value) {
                     String key = OpenInv.this.accessor.getPlayerDataManager().getPlayerDataID(value);
                     return OpenInv.this.inventories.containsKey(key)
                             && OpenInv.this.inventories.get(key).isInUse()
                             || OpenInv.this.enderChests.containsKey(key)
-                                    && OpenInv.this.enderChests.get(key).isInUse()
+                            && OpenInv.this.enderChests.get(key).isInUse()
                             || OpenInv.this.pluginUsage.containsKey(key);
                 }
-            }, new Function<Player>() {
-                @Override
-                public boolean run(final Player value) {
-                    String key = OpenInv.this.accessor.getPlayerDataManager().getPlayerDataID(value);
+            }, new Function<>() {
+        @Override
+        public boolean run(final Player value) {
+            String key = OpenInv.this.accessor.getPlayerDataManager().getPlayerDataID(value);
 
-                    // Check if inventory is stored, and if it is, remove it and eject all viewers
-                    if (OpenInv.this.inventories.containsKey(key)) {
-                        Inventory inv = OpenInv.this.inventories.remove(key).getBukkitInventory();
-                        List<HumanEntity> viewers = inv.getViewers();
-                        for (HumanEntity entity : viewers.toArray(new HumanEntity[viewers.size()])) {
-                            entity.closeInventory();
-                        }
-                    }
-
-                    // Check if ender chest is stored, and if it is, remove it and eject all viewers
-                    if (OpenInv.this.enderChests.containsKey(key)) {
-                        Inventory inv = OpenInv.this.enderChests.remove(key).getBukkitInventory();
-                        List<HumanEntity> viewers = inv.getViewers();
-                        for (HumanEntity entity : viewers.toArray(new HumanEntity[viewers.size()])) {
-                            entity.closeInventory();
-                        }
-                    }
-
-                    if (!OpenInv.this.disableSaving() && !value.isOnline()) {
-                        value.saveData();
-                    }
-                    return true;
+            // Check if inventory is stored, and if it is, remove it and eject all viewers
+            if (OpenInv.this.inventories.containsKey(key)) {
+                Inventory inv = OpenInv.this.inventories.remove(key).getBukkitInventory();
+                List<HumanEntity> viewers = inv.getViewers();
+                for (HumanEntity entity : viewers.toArray(new HumanEntity[0])) {
+                    entity.closeInventory();
                 }
-            });
+            }
 
-    private InternalAccessor accessor;
+            // Check if ender chest is stored, and if it is, remove it and eject all viewers
+            if (OpenInv.this.enderChests.containsKey(key)) {
+                Inventory inv = OpenInv.this.enderChests.remove(key).getBukkitInventory();
+                List<HumanEntity> viewers = inv.getViewers();
+                for (HumanEntity entity : viewers.toArray(new HumanEntity[0])) {
+                    entity.closeInventory();
+                }
+            }
+
+            if (!OpenInv.this.disableSaving() && !value.isOnline()) {
+                value.saveData();
+            }
+            return true;
+        }
+    });
 
     /**
      * Evicts all viewers lacking cross-world permissions from a Player's inventory.
@@ -134,9 +109,7 @@ public class OpenInv extends JavaPlugin implements IOpenInv {
         }
 
         if (this.inventories.containsKey(key)) {
-            Iterator<HumanEntity> iterator = this.inventories.get(key).getBukkitInventory().getViewers().iterator();
-            while (iterator.hasNext()) {
-                HumanEntity human = iterator.next();
+            for (HumanEntity human : this.inventories.get(key).getBukkitInventory().getViewers()) {
                 // If player has permission or is in the same world, allow continued access
                 // Just in case, also allow null worlds.
                 if (Permissions.CROSSWORLD.hasPermission(human) || human.getWorld() == null
@@ -148,9 +121,7 @@ public class OpenInv extends JavaPlugin implements IOpenInv {
         }
 
         if (this.enderChests.containsKey(key)) {
-            Iterator<HumanEntity> iterator = this.enderChests.get(key).getBukkitInventory().getViewers().iterator();
-            while (iterator.hasNext()) {
-                HumanEntity human = iterator.next();
+            for (HumanEntity human : this.enderChests.get(key).getBukkitInventory().getViewers()) {
                 if (Permissions.CROSSWORLD.hasPermission(human) || human.getWorld() == null
                         || human.getWorld().equals(player.getWorld())) {
                     continue;
@@ -206,7 +177,7 @@ public class OpenInv extends JavaPlugin implements IOpenInv {
             return string2.length();
         }
         if (string2.isEmpty()) {
-            return string2.length();
+            return 0;
         }
         if (string1.equals(string2)) {
             return 0;
@@ -366,12 +337,7 @@ public class OpenInv extends JavaPlugin implements IOpenInv {
         }
 
         Future<Player> future = Bukkit.getScheduler().callSyncMethod(this,
-                new Callable<Player>() {
-            @Override
-            public Player call() {
-                return OpenInv.this.accessor.getPlayerDataManager().loadPlayer(offline);
-            }
-        });
+                () -> OpenInv.this.accessor.getPlayerDataManager().loadPlayer(offline));
 
         int ticks = 0;
         while (!future.isDone() && !future.isCancelled() && ticks < 10) {
@@ -390,10 +356,7 @@ public class OpenInv extends JavaPlugin implements IOpenInv {
 
         try {
             loaded = future.get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            return null;
-        } catch (ExecutionException e) {
+        } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
             return null;
         }
@@ -650,7 +613,7 @@ public class OpenInv extends JavaPlugin implements IOpenInv {
             PluginCommand command = this.getCommand(commandName);
 
             // Ensure command is successfully registered and player can use it
-            if (command == null  || !command.testPermissionSilent(player)) {
+            if (command == null || !command.testPermissionSilent(player)) {
                 continue;
             }
 

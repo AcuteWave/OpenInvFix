@@ -16,37 +16,15 @@
 
 package com.lishid.openinv.internal.v1_12_R1;
 
-import java.lang.reflect.Field;
-
 import com.lishid.openinv.internal.IAnySilentContainer;
-
+import net.minecraft.server.v1_12_R1.*;
 import org.bukkit.Material;
 import org.bukkit.Statistic;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.InventoryView;
 
-import net.minecraft.server.v1_12_R1.AxisAlignedBB;
-import net.minecraft.server.v1_12_R1.Block;
-import net.minecraft.server.v1_12_R1.BlockChest;
-import net.minecraft.server.v1_12_R1.BlockEnderChest;
-import net.minecraft.server.v1_12_R1.BlockPosition;
-import net.minecraft.server.v1_12_R1.BlockShulkerBox;
-import net.minecraft.server.v1_12_R1.Entity;
-import net.minecraft.server.v1_12_R1.EntityOcelot;
-import net.minecraft.server.v1_12_R1.EntityPlayer;
-import net.minecraft.server.v1_12_R1.EnumDirection;
-import net.minecraft.server.v1_12_R1.EnumGamemode;
-import net.minecraft.server.v1_12_R1.IBlockData;
-import net.minecraft.server.v1_12_R1.ITileInventory;
-import net.minecraft.server.v1_12_R1.InventoryEnderChest;
-import net.minecraft.server.v1_12_R1.InventoryLargeChest;
-import net.minecraft.server.v1_12_R1.PlayerInteractManager;
-import net.minecraft.server.v1_12_R1.TileEntity;
-import net.minecraft.server.v1_12_R1.TileEntityChest;
-import net.minecraft.server.v1_12_R1.TileEntityEnderChest;
-import net.minecraft.server.v1_12_R1.TileEntityShulkerBox;
-import net.minecraft.server.v1_12_R1.World;
+import java.lang.reflect.Field;
 
 public class AnySilentContainer implements IAnySilentContainer {
 
@@ -128,7 +106,7 @@ public class AnySilentContainer implements IAnySilentContainer {
         EnumDirection enumDirection = blockData.get(BlockShulkerBox.a);
         if (((TileEntityShulkerBox) tile).p() == TileEntityShulkerBox.AnimationPhase.CLOSED) {
             AxisAlignedBB axisAlignedBB = Block.j.b(0.5F * enumDirection.getAdjacentX(),
-                    0.5F * enumDirection.getAdjacentY(), 0.5F * enumDirection.getAdjacentZ())
+                            0.5F * enumDirection.getAdjacentY(), 0.5F * enumDirection.getAdjacentZ())
                     .a(enumDirection.getAdjacentX(), enumDirection.getAdjacentY(),
                             enumDirection.getAdjacentZ());
 
@@ -144,12 +122,11 @@ public class AnySilentContainer implements IAnySilentContainer {
     }
 
     private boolean hasOcelotOnTop(final World world, final BlockPosition blockPosition) {
-        for (Entity localEntity : world.a(EntityOcelot.class,
+        for (EntityOcelot localEntity : world.a(EntityOcelot.class,
                 new AxisAlignedBB(blockPosition.getX(), blockPosition.getY() + 1,
                         blockPosition.getZ(), blockPosition.getX() + 1, blockPosition.getY() + 2,
                         blockPosition.getZ() + 1))) {
-            EntityOcelot localEntityOcelot = (EntityOcelot) localEntity;
-            if (localEntityOcelot.isSitting()) {
+            if (localEntity.isSitting()) {
                 return true;
             }
         }
@@ -159,7 +136,7 @@ public class AnySilentContainer implements IAnySilentContainer {
 
     @Override
     public boolean activateContainer(final Player bukkitPlayer, final boolean silentchest,
-            final org.bukkit.block.Block bukkitBlock) {
+                                     final org.bukkit.block.Block bukkitBlock) {
 
         // Silent ender chest is API-only
         if (silentchest && bukkitBlock.getType() == Material.ENDER_CHEST) {
@@ -257,12 +234,12 @@ public class AnySilentContainer implements IAnySilentContainer {
 
         InventoryView view = bukkitPlayer.getOpenInventory();
         switch (view.getType()) {
-        case CHEST:
-        case ENDER_CHEST:
-        case SHULKER_BOX:
-            break;
-        default:
-            return;
+            case CHEST:
+            case ENDER_CHEST:
+            case SHULKER_BOX:
+                break;
+            default:
+                return;
         }
 
         EntityPlayer player = PlayerDataManager.getHandle(bukkitPlayer);

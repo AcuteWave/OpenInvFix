@@ -16,16 +16,15 @@
 
 package com.lishid.openinv;
 
-import javax.annotation.Nullable;
-
 import com.lishid.openinv.internal.IAnySilentContainer;
 import com.lishid.openinv.internal.IInventoryAccess;
 import com.lishid.openinv.internal.ISpecialEnderChest;
 import com.lishid.openinv.internal.ISpecialPlayerInventory;
-
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
+
+import javax.annotation.Nullable;
 
 /**
  * Interface defining behavior for the OpenInv plugin.

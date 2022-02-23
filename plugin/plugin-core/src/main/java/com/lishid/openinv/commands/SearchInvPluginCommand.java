@@ -17,7 +17,6 @@
 package com.lishid.openinv.commands;
 
 import com.lishid.openinv.OpenInv;
-
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -71,10 +70,10 @@ public class SearchInvPluginCommand implements CommandExecutor {
         if (players.length() > 0) {
             players.delete(players.length() - 2, players.length());
         } else {
-            sender.sendMessage("No players found with " + material.toString());
+            sender.sendMessage("No players found with " + material);
         }
 
-        sender.sendMessage("Players with the item " + material.toString() + ": " + players.toString());
+        sender.sendMessage("Players with the item " + material + ": " + players);
         return true;
     }
 

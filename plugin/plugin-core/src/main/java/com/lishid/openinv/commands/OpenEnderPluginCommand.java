@@ -16,12 +16,9 @@
 
 package com.lishid.openinv.commands;
 
-import java.util.HashMap;
-
 import com.lishid.openinv.OpenInv;
 import com.lishid.openinv.internal.ISpecialEnderChest;
 import com.lishid.openinv.util.Permissions;
-
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -30,10 +27,12 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.HashMap;
+
 public class OpenEnderPluginCommand implements CommandExecutor {
 
     private final OpenInv plugin;
-    private final HashMap<Player, String> openEnderHistory = new HashMap<Player, String>();
+    private final HashMap<Player, String> openEnderHistory = new HashMap<>();
 
     public OpenEnderPluginCommand(final OpenInv plugin) {
         this.plugin = plugin;

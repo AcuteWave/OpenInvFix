@@ -17,7 +17,6 @@
 package com.lishid.openinv.commands;
 
 import com.lishid.openinv.OpenInv;
-
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -59,7 +58,8 @@ public class SearchEnchantPluginCommand implements CommandExecutor {
             }
             try {
                 level = Integer.parseInt(argument);
-            } catch (NumberFormatException ignored) {}
+            } catch (NumberFormatException ignored) {
+            }
         }
 
         // Arguments not set correctly
@@ -100,7 +100,7 @@ public class SearchEnchantPluginCommand implements CommandExecutor {
             return true;
         }
 
-        sender.sendMessage("Players: " + players.toString());
+        sender.sendMessage("Players: " + players);
         return true;
     }
 

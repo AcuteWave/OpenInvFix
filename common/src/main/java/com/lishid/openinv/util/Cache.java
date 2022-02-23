@@ -16,15 +16,10 @@
 
 package com.lishid.openinv.util;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
 import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
+
+import java.util.*;
 
 /**
  * A minimal thread-safe time-based cache implementation backed by a HashMap and TreeMultimap.
@@ -41,25 +36,15 @@ public class Cache<K, V> {
     /**
      * Constructs a Cache with the specified retention duration, in use function, and post-removal function.
      *
-     * @param retention duration after which keys are automatically invalidated if not in use
-     * @param inUseCheck Function used to check if a key is considered in use
+     * @param retention   duration after which keys are automatically invalidated if not in use
+     * @param inUseCheck  Function used to check if a key is considered in use
      * @param postRemoval Function used to perform any operations required when a key is invalidated
      */
     public Cache(final long retention, final Function<V> inUseCheck, final Function<V> postRemoval) {
-        this.internal = new HashMap<K, V>();
+        this.internal = new HashMap<>();
 
-        this.expiry = TreeMultimap.create(new Comparator<Long>() {
-                    @Override
-                    public int compare(final Long long1, final Long long2) {
-                        return long1.compareTo(long2);
-                    }
-                },
-                new Comparator<K>() {
-                    @Override
-                    public int compare(final K k1, final K k2) {
-                        return k1 == k2 || k1 != null && k1.equals(k2) ? 0 : 1;
-                    }
-                });
+        this.expiry = TreeMultimap.create(Long::compareTo,
+                (k1, k2) -> Objects.equals(k1, k2) ? 0 : 1);
 
         this.retention = retention;
         this.inUseCheck = inUseCheck;
@@ -70,7 +55,7 @@ public class Cache<K, V> {
      * Set a key and value pair. Keys are unique. Using an existing key will cause the old value to
      * be overwritten and the expiration timer to be reset.
      *
-     * @param key key with which the specified value is to be associated
+     * @param key   key with which the specified value is to be associated
      * @param value value to be associated with the specified key
      */
     public void put(final K key, final V value) {
@@ -132,7 +117,7 @@ public class Cache<K, V> {
             this.internal.remove(key);
 
             // Remove expiration entry - prevents more work later, plus prevents issues with values invalidating early
-            for (Iterator<Map.Entry<Long, K>> iterator = this.expiry.entries().iterator(); iterator.hasNext();) {
+            for (Iterator<Map.Entry<Long, K>> iterator = this.expiry.entries().iterator(); iterator.hasNext(); ) {
                 if (key.equals(iterator.next().getValue())) {
                     iterator.remove();
                     break;
@@ -161,9 +146,9 @@ public class Cache<K, V> {
     private void lazyCheck() {
         long now = System.currentTimeMillis();
         synchronized (this.internal) {
-            List<K> inUse = new ArrayList<K>();
+            List<K> inUse = new ArrayList<>();
             for (Iterator<Map.Entry<Long, K>> iterator = this.expiry.entries().iterator(); iterator
-                    .hasNext();) {
+                    .hasNext(); ) {
                 Map.Entry<Long, K> entry = iterator.next();
 
                 if (entry.getKey() > now) {

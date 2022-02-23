@@ -50,7 +50,7 @@ public enum Permissions {
 
         StringBuilder permissionDestroyer = new StringBuilder(permission);
         for (int lastPeriod = permissionDestroyer.lastIndexOf("."); lastPeriod > 0;
-                lastPeriod = permissionDestroyer.lastIndexOf(".")) {
+             lastPeriod = permissionDestroyer.lastIndexOf(".")) {
             permissionDestroyer.delete(lastPeriod + 1, permissionDestroyer.length()).append('*');
 
             hasPermission = permissible.hasPermission(permissionDestroyer.toString());

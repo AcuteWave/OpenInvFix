@@ -16,26 +16,20 @@
 
 package com.lishid.openinv.internal.v1_12_R1;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.List;
-
 import com.google.common.collect.ImmutableList;
 import com.lishid.openinv.internal.ISpecialPlayerInventory;
-
 import net.minecraft.server.v1_12_R1.*;
+import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftInventory;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 
-import org.bukkit.craftbukkit.v1_12_R1.inventory.CraftInventory;
+import java.util.List;
 
 public class SpecialPlayerInventory extends PlayerInventory implements ISpecialPlayerInventory {
 
     private final CraftInventory inventory = new CraftInventory(this);
     private boolean playerOnline;
     private NonNullList<ItemStack> items, armor, extraSlots;
-    private final List<NonNullList<ItemStack>> f;
 
     public SpecialPlayerInventory(final Player bukkitPlayer, final Boolean online) {
         super(PlayerDataManager.getHandle(bukkitPlayer));
@@ -43,7 +37,7 @@ public class SpecialPlayerInventory extends PlayerInventory implements ISpecialP
         this.items = this.player.inventory.items;
         this.armor = this.player.inventory.armor;
         this.extraSlots = this.player.inventory.extraSlots;
-        this.f = ImmutableList.of(this.items, this.armor, this.extraSlots);
+        List<NonNullList<ItemStack>> f = ImmutableList.of(this.items, this.armor, this.extraSlots);
     }
 
     @Override

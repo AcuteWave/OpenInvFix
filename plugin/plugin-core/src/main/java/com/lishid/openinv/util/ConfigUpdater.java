@@ -16,18 +16,17 @@
 
 package com.lishid.openinv.util;
 
+import com.lishid.openinv.OpenInv;
+import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.scheduler.BukkitRunnable;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
-import com.lishid.openinv.OpenInv;
-
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.scheduler.BukkitRunnable;
 
 public class ConfigUpdater {
 
@@ -126,7 +125,7 @@ public class ConfigUpdater {
             return;
         }
 
-        final Map<String, Boolean> toggles = new HashMap<String, Boolean>();
+        final Map<String, Boolean> toggles = new HashMap<>();
 
         for (String playerName : keys) {
             OfflinePlayer player = plugin.matchPlayer(playerName);

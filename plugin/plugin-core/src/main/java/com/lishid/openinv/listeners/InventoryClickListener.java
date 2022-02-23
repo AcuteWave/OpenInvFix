@@ -18,7 +18,6 @@ package com.lishid.openinv.listeners;
 
 import com.lishid.openinv.IOpenInv;
 import com.lishid.openinv.util.Permissions;
-
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -41,7 +40,7 @@ public class InventoryClickListener implements Listener {
         if (plugin.getInventoryAccess().isSpecialPlayerInventory(inventory)
                 && !Permissions.EDITINV.hasPermission(entity)
                 || plugin.getInventoryAccess().isSpecialEnderChest(inventory)
-                        && !Permissions.EDITENDER.hasPermission(entity)) {
+                && !Permissions.EDITENDER.hasPermission(entity)) {
             event.setCancelled(true);
         }
     }

@@ -16,20 +16,39 @@
 
 package com.lishid.openinv.util;
 
+import com.lishid.openinv.internal.*;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
-import com.lishid.openinv.internal.IAnySilentContainer;
-import com.lishid.openinv.internal.IInventoryAccess;
-import com.lishid.openinv.internal.IPlayerDataManager;
-import com.lishid.openinv.internal.ISpecialEnderChest;
-import com.lishid.openinv.internal.ISpecialPlayerInventory;
-
-import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
-
 public class InternalAccessor {
+
+    private final Plugin plugin;
+    private final String version;
+    private boolean supported = false;
+    private IPlayerDataManager playerDataManager;
+    private IInventoryAccess inventoryAccess;
+    private IAnySilentContainer anySilentContainer;
+
+    public InternalAccessor(final Plugin plugin) {
+        this.plugin = plugin;
+
+        String packageName = plugin.getServer().getClass().getPackage().getName();
+        this.version = packageName.substring(packageName.lastIndexOf('.') + 1);
+
+        try {
+            Class.forName("com.lishid.openinv.internal." + this.version + ".SpecialPlayerInventory");
+            Class.forName("com.lishid.openinv.internal." + this.version + ".SpecialEnderChest");
+            this.playerDataManager = this.createObject(IPlayerDataManager.class, "PlayerDataManager");
+            this.inventoryAccess = this.createObject(IInventoryAccess.class, "InventoryAccess");
+            this.anySilentContainer = this.createObject(IAnySilentContainer.class, "AnySilentContainer");
+            this.supported = true;
+        } catch (Exception ignored) {
+        }
+    }
 
     public static <T> T grabFieldOfTypeFromObject(final Class<T> type, final Object object) {
         // Use reflection to find the IInventory
@@ -48,32 +67,8 @@ public class InternalAccessor {
         return result;
     }
 
-    private final Plugin plugin;
-    private final String version;
-    private boolean supported = false;
-    private IPlayerDataManager playerDataManager;
-    private IInventoryAccess inventoryAccess;
-
-    private IAnySilentContainer anySilentContainer;
-
-    public InternalAccessor(final Plugin plugin) {
-        this.plugin = plugin;
-
-        String packageName = plugin.getServer().getClass().getPackage().getName();
-        this.version = packageName.substring(packageName.lastIndexOf('.') + 1);
-
-        try {
-            Class.forName("com.lishid.openinv.internal." + this.version + ".SpecialPlayerInventory");
-            Class.forName("com.lishid.openinv.internal." + this.version + ".SpecialEnderChest");
-            this.playerDataManager = this.createObject(IPlayerDataManager.class, "PlayerDataManager");
-            this.inventoryAccess = this.createObject(IInventoryAccess.class, "InventoryAccess");
-            this.anySilentContainer = this.createObject(IAnySilentContainer.class, "AnySilentContainer");
-            this.supported = true;
-        } catch (Exception e) {}
-    }
-
     private <T> T createObject(final Class<? extends T> assignableClass, final String className,
-            final Object... params) throws ClassCastException, ClassNotFoundException,
+                               final Object... params) throws ClassCastException, ClassNotFoundException,
             InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, SecurityException {
         // Fetch internal class if it exists.
@@ -90,7 +85,8 @@ public class InternalAccessor {
         }
 
         // Search constructors for one matching the given parameters
-        nextConstructor: for (Constructor<?> constructor : internalClass.getConstructors()) {
+        nextConstructor:
+        for (Constructor<?> constructor : internalClass.getConstructors()) {
             Class<?>[] requiredClasses = constructor.getParameterTypes();
             if (requiredClasses.length != params.length) {
                 continue;

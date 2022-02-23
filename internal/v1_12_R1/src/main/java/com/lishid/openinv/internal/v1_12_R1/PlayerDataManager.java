@@ -16,24 +16,20 @@
 
 package com.lishid.openinv.internal.v1_12_R1;
 
-import java.util.Collection;
-import java.util.UUID;
-
 import com.lishid.openinv.internal.IPlayerDataManager;
-
 import com.mojang.authlib.GameProfile;
-
-import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.Server;
-import org.bukkit.entity.Player;
-
 import net.minecraft.server.v1_12_R1.EntityPlayer;
 import net.minecraft.server.v1_12_R1.MinecraftServer;
 import net.minecraft.server.v1_12_R1.PlayerInteractManager;
-
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.Server;
 import org.bukkit.craftbukkit.v1_12_R1.CraftServer;
 import org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer;
+import org.bukkit.entity.Player;
+
+import java.util.Collection;
+import java.util.UUID;
 
 public class PlayerDataManager implements IPlayerDataManager {
 
@@ -98,7 +94,7 @@ public class PlayerDataManager implements IPlayerDataManager {
                 new PlayerInteractManager(server.getWorldServer(0)));
 
         // Get the bukkit entity
-        Player target = entity == null ? null : entity.getBukkitEntity();
+        Player target = entity.getBukkitEntity();
         if (target != null) {
             // Load data
             target.loadData();
