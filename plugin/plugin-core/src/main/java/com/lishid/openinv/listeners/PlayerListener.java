@@ -18,6 +18,7 @@ package com.lishid.openinv.listeners;
 
 import com.lishid.openinv.OpenInv;
 import com.lishid.openinv.util.Permissions;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event.Result;
 import org.bukkit.event.EventHandler;
@@ -73,11 +74,11 @@ public class PlayerListener implements Listener {
         // If anychest or silentchest is active
         if ((anychest || silentchest) && plugin.getAnySilentContainer().activateContainer(player, silentchest, event.getClickedBlock())) {
             if (silentchest && plugin.notifySilentChest() && needsAnyChest && plugin.notifyAnyChest()) {
-                player.sendMessage("You are opening a blocked container silently.");
+                player.sendMessage(ChatColor.GRAY + "You are opening a blocked container silently.");
             } else if (silentchest && plugin.notifySilentChest()) {
-                player.sendMessage("You are opening a container silently.");
+                player.sendMessage(ChatColor.GRAY + "You are opening a container silently.");
             } else if (needsAnyChest && plugin.notifyAnyChest()) {
-                player.sendMessage("You are opening a blocked container.");
+                player.sendMessage(ChatColor.GRAY + "You are opening a blocked container.");
             }
             event.setCancelled(true);
         }
